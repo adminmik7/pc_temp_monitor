@@ -22,9 +22,12 @@ void setup() {
   // Отображение стартового экрана
   showStartupScreen();
   
-  Serial.println("ESP32 PC Monitor v1.0");
-  Serial.println("Waiting for Windows data...");
-  Serial.println("Format: TEMP:XX.X|LOAD:XX");
+  Serial.println("ESP32 PC Monitor v1.1");
+  Serial.println("Waiting for Linux PC data...");
+  Serial.println("Format: TEMP:XX.X|LOAD:XX.X");
+
+  // Предотвращаем фрагментацию String
+  serialBuffer.reserve(256);
 }
 
 void loop() {

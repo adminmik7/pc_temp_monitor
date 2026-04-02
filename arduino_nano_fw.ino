@@ -54,8 +54,8 @@ void setup() {
   // Отображение стартового экрана
   showStartupScreen();
   
-  Serial.println("Arduino PC Monitor v1.0");
-  Serial.println("Waiting for Windows data...");
+  Serial.println("Arduino PC Monitor v1.1");
+  Serial.println("Waiting for Linux PC data...");
   Serial.println("Format: CPU_TEMP:XX.X|CPU_LOAD:XX|GPU_TEMP:XX.X|GPU_LOAD:XX|RAM:XX");
 }
 
@@ -242,25 +242,27 @@ void updateDisplay() {
     lcd.print("N/A");
   }
   
-  // Строка 3: Прогресс-бары CPU и GPU
+  // Строка 3: Прогресс-бар CPU Load
   lcd.setCursor(0, 2);
   lcd.print("CPU[");
   if (cpuLoad > 0) {
     drawProgressBar(4, 2, cpuLoad, 10);
   } else {
-    lcd.print("---");
+    lcd.print("----------]");
   }
   
+  // Строка 3 правая часть: RAM
   lcd.setCursor(0, 3);
   lcd.print("GPU[");
   if (gpuLoad > 0) {
     drawProgressBar(4, 3, gpuLoad, 10);
   } else {
-    lcd.print("---");
+    lcd.print("----------]");
   }
   
-  // Строка 4: RAM и время
-  lcd.setCursor(11, 2);
+  // Строка 4: RAM с новой строкой была строка 4, сейчас строка 3
+  // Переносим RAM на строку 2 справа
+  lcd.setCursor(12, 2);
   lcd.print("RAM:");
   if (ramUsage > 0) {
     if (ramUsage < 10) lcd.print(" ");
@@ -268,15 +270,6 @@ void updateDisplay() {
     lcd.print("%");
   } else {
     lcd.print("N/A");
-  }
-  
-  // Прогресс-бар RAM
-  lcd.setCursor(11, 3);
-  lcd.print("[");
-  if (ramUsage > 0) {
-    drawProgressBar(12, 3, ramUsage, 8);
-  } else {
-    lcd.print("---");
   }
 }
 
