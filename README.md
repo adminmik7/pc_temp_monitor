@@ -1,45 +1,92 @@
-Что было сделано:
+# 🌡️ PC Temperature Monitor
 
-Удален графический интерфейс - оставлен только консольный режим
+Мониторинг температуры/нагрузки CPU с выводом на LCD через Arduino/ESP32.
+Только Linux, только реальные данные.
 
-Убрана эмуляция температуры - используем только реальные данные
+---
 
-Исправлена проблема с Load: 0.0% - улучшено получение нагрузки CPU
+## 📁 Структура
 
-Добавлена поддержка демона - можно запускать в фоновом режиме
+| Файл | Назначение |
+|---|---|
+| `pc_temp_monitor.py` | Python-скрипт отправки данных на MCU |
+| `esp32_firmware.ino` | Прошивка ESP32 (LCD 1602 I2C) |
+| `arduino_nano_fw.ino` | Прошивка Arduino Nano (LCD 2004 I2C) |
+| `daemon_start.sh` | Скрипт безопасного запуска с авто-рестартом |
 
-Использован правильный путь для AMD - /sys/devices/pci0000:00/0000:00:18.3/hwmon/hwmon0/temp1_input
+---
 
-Ключевые функции:
+## 🚀 Быстрый старт
 
-✅ Работает с реальной температурой - использует системные датчики
-
-✅ Стабильная отправка данных - нет "no data" на ESP32
-
-✅ Надежное получение нагрузки CPU - всегда корректные значения
-
-✅ Поддержка демона - можно запускать в фоне
-
-✅ Логирование - удобный просмотр истории работы
-
-✅ Автоматический выбор порта - если подключен один ESP32
-
-
-Основные команды для использования:
+```bash
 # Проверить датчики температуры
 python3 pc_temp_monitor.py --check-sensors
 
-# Запустить в интерактивном режиме
+# Запустить (интерактив)
 python3 pc_temp_monitor.py --port /dev/ttyUSB0
 
-# Запустить как демон (фоновый режим)
+# Запустить как демон (фон)
 python3 pc_temp_monitor.py --daemon --port /dev/ttyUSB0
 
-# Показать логи демона
-python3 pc_temp_monitor.py --log
+# Безопасный запуск (авто-порт + рестарт при сбое)
+chmod +x daemon_start.sh
+./daemon_start.sh
+```
 
-# Список доступных портов
-python3 pc_temp_monitor.py --list-ports
+## 📋 Все команды
 
-# Создать systemd сервис для автозапуска
-python3 pc_temp_monitor.py --create-service --port /dev/ttyUSB0
+```bash
+python3 pc_temp_monitor.py --check-sensors     # Проверить датчики
+python3 pc_temp_monitor.py --port /dev/ttyUSB0  # Интерактивный режим
+python3 pc_temp_monitor.py --daemon --port ...  # Демон (фон)
+python3 pc_temp_monitor.py --log                # Показать логи
+python3 pc_temp_monitor.py --list-ports         # Список портов
+python3 pc_temp_monitor.py --create-service --port /dev/ttyUSB0  # systemd сервис
+```
+
+## ✅ Ключевые возможности
+
+- Реальная температура CPU (AMD/Intel, sysfs + lm-sensors)
+- Реальная нагрузка CPU (psutil + /proc/stat fallback)
+- Поддержка демона с логированием
+- Автоматический выбор порта
+- systemd сервис для автозапуска
+
+---
+
+## 📝 Changelog
+
+### 2026-04-02 — Code review & fixes
+
+**esp32_firmware.ino v1.1:**
+- ❌→✅ "Waiting for Windows data" → "Waiting for Linux PC data"
+- ✅ `serialBuffer.reserve(256)` — предотвращение фрагментации памяти
+
+**arduino_nano_fw.ino v1.1:**
+- ❌→✅ "Waiting for Windows data" → "Waiting for Linux PC data"
+- 🐛 **Критический баг:** Прогресс-бары CPU/GPU/RAM конфликтовали на строках 2-3 (overlap). Строка 4 (RAM) перезаписывала строку 3 (GPU). → ✅ Исправлено: RAM на строке 2 справа, GPU на строке 3
+
+**pc_temp_monitor.py:**
+- 🔧 autopep8 — автоформатирование (119 строк trailing whitespace, 4 отступа)
+- ❌ Удалён неиспользуемый `from datetime import datetime`
+- ❌ Удалён дублирующий `import psutil` в `__main__`
+- 🔧 `except:` → `except Exception:` (6 мест)
+- 🔧 Исправлен unused exception variable `e` (×2)
+- 🔧 Исправлен f-string без плейсхолдеров
+
+**Новые файлы:**
+- ✅ `daemon_start.sh` — безопасный запуск с проверкой Python, зависимостей, USB-порта и авто-рестартом при сбое
+
+### Ранее
+- Удалён графический интерфейс — только консольный режим
+- Убрана эмуляция температуры — только реальные данные
+- Исправлена проблема с Load: 0.0%
+- Добавлена поддержка демона
+- Оптимизирован путь AMD: `/sys/devices/pci0000:00/0000:00:18.3/hwmon/hwmon0/temp1_input`
+- Автовыбор порта при единственном ESP32
+
+---
+
+## 🏠 Связанные проекты
+
+- **[openclaw-backup](https://github.com/adminmik7/openclaw-backup)** — бэкап конфигурации OpenClaw
