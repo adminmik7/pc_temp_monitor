@@ -1,7 +1,10 @@
 # 🌡️ PC Temperature Monitor
 
-Мониторинг температуры/нагрузки CPU с выводом на LCD через Arduino/ESP32.
-Только Linux, только реальные данные.
+# 🌡️ pc_temp_monitor — Linux PC Monitor
+
+**Latest Release:** [v1.2.0](https://github.com/adminmik7/pc_temp_monitor/releases/tag/v1.2.0) 🚀
+
+Мониторинг реальной температуры и нагрузки CPU с выводом на LCD (1602/2004) через ESP32 или Arduino Nano. Работает в Linux, использует данные `hwmon` и `lm-sensors`.
 
 ---
 
