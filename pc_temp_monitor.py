@@ -18,6 +18,7 @@ import glob
 import re
 import signal
 import logging
+import psutil
 from logging.handlers import RotatingFileHandler
 
 # ============================================================================
@@ -869,12 +870,16 @@ def main():
 
 if __name__ == "__main__":
     # Проверка зависимостей
-    try:
-        import serial
-            except ImportError as e:
-        print(f"Ошибка: Отсутствует зависимость: {e}")
-        print("Установите необходимые модули:")
-        print("  pip install pyserial psutil")
+    missing = []
+    for module in ['serial', 'psutil']:
+        try:
+            __import__(module)
+        except ImportError:
+            missing.append(module)
+    
+    if missing:
+        print(f"Ошибка: Отсутствуют модули: {', '.join(missing)}")
+        print("Установите их командой: pip install pyserial psutil")
         sys.exit(1)
 
     main()

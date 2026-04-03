@@ -8,7 +8,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // Если не работает, попр�
 float cpuTemp = 0.0;
 float cpuLoad = 0.0;
 unsigned long lastUpdate = 0;
-String serialBuffer = "";
+char serialBuffer[64];
+int bufferIndex = 0;
 bool connected = false;
 
 void setup() {
@@ -36,10 +37,12 @@ void loop() {
     char c = Serial.read();
     
     if (c == '\n') {
+      serialBuffer[bufferIndex] = '\0';
       processData(serialBuffer);
-      serialBuffer = "";
-    } else {
-      serialBuffer += c;
+      bufferIndex = 0;
+      memset(serialBuffer, 0, sizeof(serialBuffer));
+    } else if (bufferIndex < (int)sizeof(serialBuffer) - 1) {
+      serialBuffer[bufferIndex++] = c;
     }
   }
   
@@ -54,40 +57,23 @@ void loop() {
     updateDisplay();
     lastDisplayUpdate = millis();
   }
-  
-  delay(10);
 }
 
-void processData(String data) {
-  data.trim();
+void processData(char* data) {
+  char* tempPtr = strstr(data, "TEMP:");
+  char* loadPtr = strstr(data, "LOAD:");
   
-  if (data.length() > 0) {
-    // Ищем температуру и загрузку CPU
-    int tempIndex = data.indexOf("TEMP:");
-    int loadIndex = data.indexOf("LOAD:");
-    
-    if (tempIndex != -1) {
-      // Извлекаем температуру
-      int endIndex = data.indexOf('|', tempIndex);
-      if (endIndex == -1) endIndex = data.length();
-      
-      String tempStr = data.substring(tempIndex + 5, endIndex);
-      cpuTemp = tempStr.toFloat();
-      
-      // Отправляем подтверждение
-      Serial.print("OK:");
-      Serial.println(cpuTemp, 1);
-    }
-    
-    if (loadIndex != -1) {
-      // Извлекаем загрузку CPU
-      int endIndex = data.indexOf('|', loadIndex);
-      if (endIndex == -1) endIndex = data.length();
-      
-      String loadStr = data.substring(loadIndex + 5, endIndex);
-      cpuLoad = loadStr.toFloat();
-    }
-    
+  if (tempPtr) {
+    cpuTemp = atof(tempPtr + 5);
+    Serial.print("OK:TEMP:");
+    Serial.println(cpuTemp, 1);
+  }
+  
+  if (loadPtr) {
+    cpuLoad = atof(loadPtr + 5);
+  }
+  
+  if (tempPtr || loadPtr) {
     lastUpdate = millis();
     connected = true;
   }
